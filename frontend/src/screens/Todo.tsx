@@ -19,23 +19,29 @@ export type TodoItemProps = {
 };
 
 function TodoItem(props: TodoItemProps) {
-  /* create state here */
+  const [done, setDone] = useState(props.done);
 
   const updateTodoItem = useCallback(async () => {
     await axios.put(`${CONFIG.API_ENDPOINT}/todos/${props.id}`, {
       id: props.id,
       description: props.description,
+      done: done
       /* persist the state of the todo item */
     });
-  }, [props.description, props.id]);
+  }, [props.description, props.id, done]);
+
+  
 
   useEffect(() => {
     /* mark the todo when done (as a dependency) changes */
-  }, [props.description, updateTodoItem]);
+    updateTodoItem();
+  }, [props.description, done, updateTodoItem]);
 
+
+  
   return (<>
     <tr>
-      <td>{/* insert checkbox here */}</td>
+      <td>{<input type="checkbox"> checked={done} onChange={(event) => setDone(event.currentTarget.checked)}</input>}</td>
       <td width={'100%'}>{props.description}</td>
     </tr>
   </>
@@ -56,11 +62,12 @@ function Todo(props: TodoProps) {
   }, []);
 
   const onRefreshClicked = useCallback(async () => {
-/* start the refresh here */
-setTimeout(async () => {
+
+   setIsRefresh(true);
+  setTimeout(async () => {
   await populateTodos();
-  /* stop the refresh here */
-}, 400);
+  setIsRefresh(false);
+  }, 400);
   }, [populateTodos]);
 
   const [isRefresh, setIsRefresh] = useState(false);
@@ -103,7 +110,7 @@ setTimeout(async () => {
                       <Button isPrimary isLoading={false}>Submit</Button>
                     </Col>
                     <Col>
-                    <Button type="button" isOutline isLoading={setIsRefresh(true)} onClick={onRefreshClicked}>
+                    <Button type="button" isOutline isLoading={isRefresh} onClick={onRefreshClicked}>
                     <span className='sgds-icon sgds-icon-refresh' />
                     </Button>
                     </Col>
